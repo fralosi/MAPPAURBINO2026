@@ -35,12 +35,13 @@ type User = {
   location?: [number, number]
 }
 
-// Tipo che si aspetta UserList
+// Tipo corretto esteso per UserList, includendo share_location
 type UserListUser = {
   id: string
   display_name: string
   isOnline: boolean
   isFocus: boolean
+  share_location: boolean
 }
 
 type Message = {
@@ -58,7 +59,6 @@ export default function Home() {
   const [assets, setAssets] = useState<Asset[]>([])
   const [loading, setLoading] = useState(false)
 
-  // Utenti per UserList, con isOnline e isFocus aggiunti
   const [mockUsers, setMockUsers] = useState<UserListUser[]>([])
   const [mockMessages, setMockMessages] = useState<Message[]>([])
 
@@ -70,8 +70,9 @@ export default function Home() {
     return users.map(user => ({
       id: user.id,
       display_name: user.display_name || 'Utente',
-      isOnline: true,   // Puoi inserire logica reale
-      isFocus: false
+      isOnline: true,
+      isFocus: false,
+      share_location: user.share_location || false
     }))
   }
 
