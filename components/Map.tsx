@@ -24,6 +24,7 @@ type Asset = {
     coordinates: any
   }
   owned?: boolean
+  purchases?: { user_id: string }[]
 }
 
 type MapProps = {
@@ -47,15 +48,60 @@ export default function Map({
     setAssets(assetsProp)
   }, [assetsProp])
 
-  // Stile poligoni (dark + minimal + distinguibile)
-  const getPolygonStyle = (owned?: boolean) => ({
-    fillColor: owned ? '#22c55e' : '#eab308',
-    color: owned ? '#16a34a' : '#fde047',
-    weight: 2,
-    fillOpacity: owned ? 0.36 : 0.5,
-    opacity: 1,
-    dashArray: owned ? '6' : '0'
-  })
+  // Stile poligoni con colori chiari e distinti
+  const getPolygonStyle = (asset: Asset) => {
+    // Verde: posseduto dall'utente loggato
+    if (asset.owned) {
+      return {
+        fillColor: '#10b981',
+        color: '#059669',
+        weight: 3,
+        fillOpacity: 0.6,
+        opacity: 1,
+        dashArray: '0'
+      }
+    }
+    
+    // Rosso: già acquistato da altri
+    if (asset.purchases && asset.purchases.length > 0) {
+      return {
+        fillColor: '#ef4444',
+        color: '#dc2626',
+        weight: 2,
+        fillOpacity: 0.4,
+        opacity: 1,
+        dashArray: '4'
+      }
+    }
+    
+    // Giallo: disponibile per l'acquisto
+    return {
+      fillColor: '#fbbf24',
+      color: '#f59e0b',
+      weight: 2,
+      fillOpacity: 0.5,
+      opacity: 1,
+      dashArray: '0'
+    }
+  }
+
+  // Funzione per icone marker colorate
+  const getMarkerIcon = (asset: Asset) => {
+    let iconColor = '#fbbf24' // Giallo default (disponibile)
+    
+    if (asset.owned) {
+      iconColor = '#10b981' // Verde (tuo)
+    } else if (asset.purchases && asset.purchases.length > 0) {
+      iconColor = '#ef4444' // Rosso (già venduto)
+    }
+    
+    return L.divIcon({
+      html: `<div style="background-color: ${iconColor}; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+      className: '',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    })
+  }
 
   // Funzione acquisto asset
   async function handlePurchase(assetId: string) {
@@ -80,6 +126,11 @@ export default function Map({
     } else {
       alert('Errore acquisto: ' + (result.error || 'Impossibile completare'))
     }
+  }
+
+  // Controlla se asset è acquistabile
+  const isAvailable = (asset: Asset) => {
+    return !asset.owned && (!asset.purchases || asset.purchases.length === 0)
   }
 
   return (
@@ -107,31 +158,37 @@ export default function Map({
               positions={asset.location_geojson.coordinates[0].map(
                 ([lng, lat]: [number, number]) => [lat, lng]
               )}
-              pathOptions={getPolygonStyle(asset.owned)}
+              pathOptions={getPolygonStyle(asset)}
               eventHandlers={{
                 click: (e) => { e.target.openPopup() }
               }}
             >
               <Popup closeButton={true}>
-                <div className="font-semibold text-base">
+                <div className="font-semibold text-base text-gray-900">
                   {asset.name}
                 </div>
-                <div className="text-xs text-gray-200">Tipo: {asset.type}</div>
-                <div className="text-xs text-gray-200">
-                  Prezzo: <span className="font-mono">{asset.base_price} 💸</span><br />
-                  Rendimento: <span className="font-mono">{asset.hourly_yield}/h</span>
+                <div className="text-xs text-gray-700">Tipo: {asset.type}</div>
+                <div className="text-xs text-gray-700">
+                  Prezzo: <span className="font-mono font-bold">{asset.base_price} 💰</span><br />
+                  Rendimento: <span className="font-mono font-bold">+{asset.hourly_yield}/h</span>
                 </div>
-                <hr className="my-2 border-gray-600"/>
+                <hr className="my-2 border-gray-300"/>
                 {asset.owned ? (
-                  <span className="text-green-400 font-bold">Tuo</span>
+                  <div className="bg-green-100 text-green-800 px-3 py-1.5 rounded font-bold text-center">
+                    ✅ Tuo
+                  </div>
+                ) : !isAvailable(asset) ? (
+                  <div className="bg-red-100 text-red-800 px-3 py-1.5 rounded font-bold text-center">
+                    ❌ Già venduto
+                  </div>
                 ) : (
                   session && (
                     <button
-                      className="btn btn-sm mt-1 bg-amber-500 hover:bg-amber-400 rounded px-3 py-1.5 font-bold text-sm"
+                      className="w-full mt-1 bg-amber-500 hover:bg-amber-400 rounded px-4 py-2 font-bold text-white text-sm transition-colors"
                       onClick={() => handlePurchase(asset.id)}
                       disabled={loading}
                     >
-                      {loading ? "Acquisto..." : "Compra"}
+                      {loading ? "Acquisto..." : "🛒 Compra"}
                     </button>
                   )
                 )}
@@ -141,27 +198,34 @@ export default function Map({
             <Marker
               key={asset.id}
               position={[asset.location_geojson.coordinates[1], asset.location_geojson.coordinates[0]]}
+              icon={getMarkerIcon(asset)}
             >
               <Popup closeButton={true}>
-                <div className="font-semibold text-base">
+                <div className="font-semibold text-base text-gray-900">
                   {asset.name}
                 </div>
-                <div className="text-xs text-gray-200">Tipo: {asset.type}</div>
-                <div className="text-xs text-gray-200">
-                  Prezzo: <span className="font-mono">{asset.base_price} 💸</span><br />
-                  Rendimento: <span className="font-mono">{asset.hourly_yield}/h</span>
+                <div className="text-xs text-gray-700">Tipo: {asset.type}</div>
+                <div className="text-xs text-gray-700">
+                  Prezzo: <span className="font-mono font-bold">{asset.base_price} 💰</span><br />
+                  Rendimento: <span className="font-mono font-bold">+{asset.hourly_yield}/h</span>
                 </div>
-                <hr className="my-2 border-gray-600"/>
+                <hr className="my-2 border-gray-300"/>
                 {asset.owned ? (
-                  <span className="text-green-400 font-bold">Tuo</span>
+                  <div className="bg-green-100 text-green-800 px-3 py-1.5 rounded font-bold text-center">
+                    ✅ Tuo
+                  </div>
+                ) : !isAvailable(asset) ? (
+                  <div className="bg-red-100 text-red-800 px-3 py-1.5 rounded font-bold text-center">
+                    ❌ Già venduto
+                  </div>
                 ) : (
                   session && (
                     <button
-                      className="btn btn-sm mt-1 bg-amber-500 hover:bg-amber-400 rounded px-3 py-1.5 font-bold text-sm"
+                      className="w-full mt-1 bg-amber-500 hover:bg-amber-400 rounded px-4 py-2 font-bold text-white text-sm transition-colors"
                       onClick={() => handlePurchase(asset.id)}
                       disabled={loading}
                     >
-                      {loading ? "Acquisto..." : "Compra"}
+                      {loading ? "Acquisto..." : "🛒 Compra"}
                     </button>
                   )
                 )}
@@ -170,24 +234,48 @@ export default function Map({
           ) : null
         ))}
 
-        {/* Marker e popup posizione utente */}
+        {/* Marker posizione utente */}
         {userPosition && (
           <Marker
             position={userPosition}
             icon={L.icon({
-              iconUrl: 'https://avatars.dicebear.com/api/personas/you.svg',
-              iconSize: [36, 36]
+              iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+              iconSize: [32, 32],
+              iconAnchor: [16, 32]
             })}
           >
             <Popup>
-              <b>Tu sei qui</b>
+              <b>📍 Tu sei qui</b>
             </Popup>
           </Marker>
         )}
       </MapContainer>
+
+      {/* Legenda */}
+      <div className="absolute bottom-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-4 z-[1000] border-2 border-gray-200">
+        <h3 className="font-bold text-sm text-gray-900 mb-2">Legenda</h3>
+        <div className="space-y-2 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#10b981' }}></div>
+            <span className="text-gray-700 font-semibold">Tuoi immobili</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#fbbf24' }}></div>
+            <span className="text-gray-700 font-semibold">Disponibili</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: '#ef4444' }}></div>
+            <span className="text-gray-700 font-semibold">Già venduti</span>
+          </div>
+        </div>
+      </div>
+
       {children}
+      
       {loading && (
-        <div className="absolute left-4 top-4 bg-blur px-4 py-2 rounded-xl shadow text-base text-primary z-50 border font-semibold">Caricamento...</div>
+        <div className="absolute left-4 top-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg text-base text-gray-900 z-50 border-2 border-amber-400 font-semibold">
+          ⏳ Caricamento...
+        </div>
       )}
     </div>
   )
