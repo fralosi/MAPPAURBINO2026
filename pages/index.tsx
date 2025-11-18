@@ -35,6 +35,14 @@ type User = {
   location?: [number, number]
 }
 
+// Tipo che si aspetta UserList
+type UserListUser = {
+  id: string
+  display_name: string
+  isOnline: boolean
+  isFocus: boolean
+}
+
 type Message = {
   id: string
   from_user: string
@@ -45,23 +53,32 @@ type Message = {
 
 export default function Home() {
   const session = useSession()
+
   const [user, setUser] = useState<User | null>(null)
   const [assets, setAssets] = useState<Asset[]>([])
   const [loading, setLoading] = useState(false)
 
-  // Mock dati per utenti e messaggi finché non carichi i veri
-  const [mockUsers, setMockUsers] = useState<User[]>([])
+  // Utenti per UserList, con isOnline e isFocus aggiunti
+  const [mockUsers, setMockUsers] = useState<UserListUser[]>([])
   const [mockMessages, setMockMessages] = useState<Message[]>([])
 
   useEffect(() => {
     if (session?.user) fetchEverything()
   }, [session])
 
+  function transformUsers(users: User[]): UserListUser[] {
+    return users.map(user => ({
+      id: user.id,
+      display_name: user.display_name || 'Utente',
+      isOnline: true,   // Puoi inserire logica reale
+      isFocus: false
+    }))
+  }
+
   async function fetchEverything() {
     if (!session?.user) return
     setLoading(true)
 
-    // Dati utente
     const { data: uData } = await supabase
       .from('users')
       .select('*')
@@ -70,7 +87,6 @@ export default function Home() {
 
     if (uData) setUser(uData)
 
-    // Dati asset con acquisti
     const { data: aData } = await supabase
       .from('assets')
       .select('*, purchases(user_id)')
@@ -83,11 +99,9 @@ export default function Home() {
       setAssets(mappedAssets)
     }
 
-    // Mock utenti online (per UserList)
     const { data: allUsers } = await supabase.from('users').select('*')
-    if (allUsers) setMockUsers(allUsers)
+    if (allUsers) setMockUsers(transformUsers(allUsers))
 
-    // Mock messaggi chat 
     const { data: messages } = await supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(30)
     if (messages) setMockMessages(messages)
 
