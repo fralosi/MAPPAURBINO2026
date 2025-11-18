@@ -52,7 +52,12 @@ export default function HomePage() {
 
     async function fetchEverything() {
       setLoading(true)
-      const { user: sUser } = session
+      if (!session?.user) {
+  setLoading(false)
+  return
+}
+const sUser = session.user
+
       // Assicurati che user esista
       let { data: uData } = await supabase
         .from('users')
