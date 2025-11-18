@@ -1,0 +1,30 @@
+# Node.js e Next.js
+node_modules/
+.next/
+out/
+dist/
+*.log
+
+# Env, chiavi e segreti
+.env*
+!.env.example
+
+# Test, coverage
+coverage/
+*.lcov
+
+# Sistema/macOS/OS
+.DS_Store
+Thumbs.db
+
+# VSCode e editor
+.vscode/
+.idea/
+*.swp
+
+# Dump local Supabase Studio (se usato)
+supabase/.temp/
+supabase/.output/
+
+# Backup
+*.bak

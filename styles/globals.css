@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Liquid glass & palette personalizzata */
+body {
+  min-height: 100vh;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Effetto frosted glass - esempio, usa anche nelle classi dei pannelli */
+.liquid-glass {
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(8px);
+  border-radius: 2rem;
+  border: 1.5px solid rgba(255,255,255,0.4);
+  box-shadow: 0 1.5px 16px 0 rgba(100,100,150,0.05);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: #eee;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD4E1;
+  border-radius: 4px;
+}
+
+/* Focus visivo per accessibilità */
+:focus {
+  outline: 2px solid #9DECF9;
+  outline-offset: 2px;
+}
+
+/* Micro-animazione hover su bottoni/base */
+button,
+.btn {
+  transition: all 0.18s cubic-bezier(.4,0,.2,1);
+}
+button:hover,
+.btn:hover {
+  filter: brightness(0.93) blur(0.5px);
+  transform: translateY(-1.5px) scale(1.015);
+}

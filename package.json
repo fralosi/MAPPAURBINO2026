@@ -1,0 +1,51 @@
+{
+  "name": "urbino-focus-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App Next.js che combina produttività (Pomodoro) e gioco gestionale immobiliare geolocalizzato sulla mappa di Urbino. Autenticazione Supabase, mappe OpenStreetMap, frontend minimal liquid glass.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@supabase/auth-helpers-react": "^0.5.0",
+    "@supabase/auth-ui-react": "^0.4.7",
+    "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/supabase-js": "^2.81.1",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.19",
+    "leaflet": "^1.9.4",
+    "next": "13.5.9",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-leaflet": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.7",
+    "@types/node": "20.9.0",
+    "@types/react": "18.2.36",
+    "@types/react-dom": "18.2.15",
+    "autoprefixer": "^10.4.22",
+    "eslint": "8.56.0",
+    "eslint-config-next": "14.1.4",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "nextjs",
+    "supabase",
+    "pomodoro",
+    "map",
+    "game",
+    "urbino"
+  ],
+  "author": "Accademia di Belle Arti di Urbino - studenti",
+  "license": "MIT"
+}
