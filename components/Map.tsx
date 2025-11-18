@@ -21,7 +21,7 @@ type Asset = {
   hourly_yield: number
   location_geojson: {
     type: string
-    coordinates: number[][][]
+    coordinates: any
   }
   owned?: boolean
 }
@@ -76,7 +76,7 @@ export default function Map({
     setLoading(false)
     if (result.success) {
       alert('Acquisto effettuato!')
-      window.location.reload() // Refetch da genitore consigliato come upgrade
+      window.location.reload()
     } else {
       alert('Errore acquisto: ' + (result.error || 'Impossibile completare'))
     }
@@ -105,7 +105,7 @@ export default function Map({
             <Polygon
               key={asset.id}
               positions={asset.location_geojson.coordinates[0].map(
-                ([lng, lat]) => [lat, lng]
+                ([lng, lat]: [number, number]) => [lat, lng]
               )}
               pathOptions={getPolygonStyle(asset.owned)}
               eventHandlers={{
@@ -137,6 +137,36 @@ export default function Map({
                 )}
               </Popup>
             </Polygon>
+          ) : asset.location_geojson.type === 'Point' ? (
+            <Marker
+              key={asset.id}
+              position={[asset.location_geojson.coordinates[1], asset.location_geojson.coordinates[0]]}
+            >
+              <Popup closeButton={true}>
+                <div className="font-semibold text-base">
+                  {asset.name}
+                </div>
+                <div className="text-xs text-gray-200">Tipo: {asset.type}</div>
+                <div className="text-xs text-gray-200">
+                  Prezzo: <span className="font-mono">{asset.base_price} 💸</span><br />
+                  Rendimento: <span className="font-mono">{asset.hourly_yield}/h</span>
+                </div>
+                <hr className="my-2 border-gray-600"/>
+                {asset.owned ? (
+                  <span className="text-green-400 font-bold">Tuo</span>
+                ) : (
+                  session && (
+                    <button
+                      className="btn btn-sm mt-1 bg-amber-500 hover:bg-amber-400 rounded px-3 py-1.5 font-bold text-sm"
+                      onClick={() => handlePurchase(asset.id)}
+                      disabled={loading}
+                    >
+                      {loading ? "Acquisto..." : "Compra"}
+                    </button>
+                  )
+                )}
+              </Popup>
+            </Marker>
           ) : null
         ))}
 
